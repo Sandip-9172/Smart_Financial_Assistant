@@ -256,3 +256,63 @@ def view_income(request):
     return render(request,'view_income.html',{
             'incomes': incomes,
             'total_income': total_income})
+
+# ---------------- Add_income Page ----------------
+@login_required
+def add_expense(request):
+
+    categories = Category.objects.all()
+
+    if request.method == 'POST':
+
+        amount = request.POST['amount']
+
+        category_id = request.POST['category']
+
+        date = request.POST['date']
+
+        category = Category.objects.get(
+            id=category_id
+        )
+
+        Expense.objects.create(
+
+            user=request.user,
+
+            amount=amount,
+
+            category=category,
+
+            date=date
+
+        )
+
+        return render(
+
+            request,
+
+            'add_expense.html',
+
+            {
+
+                'success': True,
+
+                'categories': categories
+
+            }
+
+        )
+
+    return render(
+
+        request,
+
+        'add_expense.html',
+
+        {
+
+            'categories': categories
+
+        }
+
+    )

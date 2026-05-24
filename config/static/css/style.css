@@ -277,3 +277,8 @@ table tr:hover{
     background:#f8fafc;
 }
 
+select{
+
+    background:white;
+}
+
