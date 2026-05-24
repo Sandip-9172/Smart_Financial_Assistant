@@ -355,3 +355,55 @@ def view_expenses(request):
         }
 
     )
+    
+#----------------SET GOAL Page---------------
+from .models import Goal
+
+
+@login_required
+def set_goal(request):
+
+    if request.method == 'POST':
+
+        name = request.POST['name']
+
+        target_amount = request.POST['target_amount']
+
+        saved_amount = request.POST['saved_amount']
+
+
+        Goal.objects.create(
+
+            user=request.user,
+
+            name=name,
+
+            target_amount=target_amount,
+
+            saved_amount=saved_amount
+
+        )
+
+
+        return render(
+
+            request,
+
+            'set_goal.html',
+
+            {
+
+                'success': True
+
+            }
+
+        )
+
+
+    return render(
+
+        request,
+
+        'set_goal.html'
+
+    )

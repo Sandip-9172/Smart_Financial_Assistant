@@ -26,7 +26,8 @@ from finance.views import (
     add_income,
     view_income,
     add_expense,
-    view_expenses
+    view_expenses,
+    set_goal
 )
 
 urlpatterns = [
@@ -50,5 +51,7 @@ urlpatterns = [
     path('add-expense/',add_expense),
     
     path('view-expenses/',view_expenses),
+    
+    path('set-goal/',set_goal),
 
 ]
