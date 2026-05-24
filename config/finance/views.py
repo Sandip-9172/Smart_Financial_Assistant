@@ -90,11 +90,91 @@ def login_view(request):
 
 
 # ---------------- DASHBOARD ----------------
+from django.contrib.auth.decorators import login_required
+from django.db.models import Sum
+
+from .models import Income, Expense, Goal
+
 
 @login_required
 def dashboard(request):
 
-    return render(request, 'dashboard.html')
+    # ---------- TOTAL INCOME ----------
+
+    total_income = Income.objects.filter(
+
+        user=request.user
+
+    ).aggregate(
+
+        Sum('amount')
+
+    )['amount__sum']
+
+
+    # ---------- TOTAL EXPENSE ----------
+
+    total_expense = Expense.objects.filter(
+
+        user=request.user
+
+    ).aggregate(
+
+        Sum('amount')
+
+    )['amount__sum']
+
+
+    # ---------- HANDLE NONE VALUES ----------
+
+    if total_income is None:
+
+        total_income = 0
+
+
+    if total_expense is None:
+
+        total_expense = 0
+
+
+    # ---------- SAVINGS ----------
+
+    savings = total_income - total_expense
+
+
+    # ---------- ACTIVE GOALS ----------
+
+    active_goals = Goal.objects.filter(
+
+        user=request.user
+
+    ).count()
+
+
+    # ---------- SEND DATA TO TEMPLATE ----------
+
+    context = {
+
+        'total_income': total_income,
+
+        'total_expense': total_expense,
+
+        'savings': savings,
+
+        'active_goals': active_goals
+
+    }
+
+
+    return render(
+
+        request,
+
+        'dashboard.html',
+
+        context
+
+    )
 
 
 # ---------------- LOGOUT ----------------
