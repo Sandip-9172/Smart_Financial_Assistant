@@ -1,5 +1,6 @@
 from rest_framework import viewsets
 from .models import Income, Expense, Goal, Category
+from django.db.models import Sum
 from .serializers import *
 
 class IncomeViewSet(viewsets.ModelViewSet):
@@ -148,3 +149,30 @@ def add_income(request):
         request,
         'add_income.html'
     )
+# ---------------- View _income Page ----------------
+
+@login_required
+def view_income(request):
+
+    incomes = Income.objects.filter(
+
+        user=request.user
+
+    ).order_by('-date')
+
+
+    total_income = incomes.aggregate(
+
+        Sum('amount')
+
+    )['amount__sum']
+
+
+    if total_income is None:
+
+        total_income = 0
+
+
+    return render(request,'view_income.html',{
+            'incomes': incomes,
+            'total_income': total_income})

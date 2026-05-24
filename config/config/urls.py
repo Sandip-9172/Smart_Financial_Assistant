@@ -23,7 +23,8 @@ from finance.views import (
     dashboard,
     logout_view,
     home_view,
-    add_income
+    add_income,
+    view_income
 )
 
 urlpatterns = [
@@ -41,5 +42,7 @@ urlpatterns = [
     path('', home_view),
     
     path('add-income/',add_income),
+    
+    path('view-income/',view_income),
 
 ]

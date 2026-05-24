@@ -1,0 +1,97 @@
+{% extends 'base.html' %}
+
+{% block title %}
+
+View Income
+
+{% endblock %}
+
+
+{% block content %}
+
+<h1 class="page-title">
+
+    Income History
+
+</h1>
+
+
+<!-- TOTAL INCOME CARD -->
+
+<div class="summary-card">
+
+    <h2>
+
+        Total Income
+
+    </h2>
+
+    <p>
+
+        ₹ {{ total_income }}
+
+    </p>
+
+</div>
+
+
+<!-- INCOME TABLE -->
+
+<div class="table-container">
+
+    <table>
+
+        <tr>
+
+            <th>
+
+                Amount
+
+            </th>
+
+            <th>
+
+                Source
+
+            </th>
+
+            <th>
+
+                Date
+
+            </th>
+
+        </tr>
+
+
+        {% for income in incomes %}
+
+        <tr>
+
+            <td>
+
+                ₹ {{ income.amount }}
+
+            </td>
+
+            <td>
+
+                {{ income.source }}
+
+            </td>
+
+            <td>
+
+                {{ income.date }}
+
+            </td>
+
+        </tr>
+
+        {% endfor %}
+
+    </table>
+
+</div>
+
+{% endblock %}
