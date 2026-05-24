@@ -1,0 +1,62 @@
+{% extends 'base.html' %}
+
+{% block title %}
+Add Income
+{% endblock %}
+
+
+{% block content %}
+
+<div class="container">
+
+    <h1>
+
+        Add Income
+
+    </h1>
+
+    {% if success %}
+
+        <p class="success">
+
+            Income Added Successfully
+
+        </p>
+
+    {% endif %}
+
+    <form method="POST">
+
+        {% csrf_token %}
+
+        <input type="number"
+               name="amount"
+               placeholder="Enter Amount"
+               class="input-box"
+               required>
+
+        <input type="text"
+               name="source"
+               placeholder="Income Source"
+               class="input-box"
+               required>
+
+        <input type="date"
+               name="date"
+               class="input-box"
+               required>
+
+        <button type="submit"
+                class="btn">
+
+            Save Income
+
+        </button>
+
+        
+
+    </form>
+
+</div>
+
+{% endblock %}
