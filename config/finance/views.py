@@ -257,7 +257,7 @@ def view_income(request):
             'incomes': incomes,
             'total_income': total_income})
 
-# ---------------- Add_income Page ----------------
+# ---------------- Add_expense Page ----------------
 @login_required
 def add_expense(request):
 
@@ -312,6 +312,45 @@ def add_expense(request):
         {
 
             'categories': categories
+
+        }
+
+    )
+    
+# ----------------View_expense Page ----------------
+@login_required
+def view_expenses(request):
+
+    expenses = Expense.objects.filter(
+
+        user=request.user
+
+    ).order_by('-date')
+
+
+    total_expense = expenses.aggregate(
+
+        Sum('amount')
+
+    )['amount__sum']
+
+
+    if total_expense is None:
+
+        total_expense = 0
+
+
+    return render(
+
+        request,
+
+        'view_expense.html',
+
+        {
+
+            'expenses': expenses,
+
+            'total_expense': total_expense
 
         }
 
