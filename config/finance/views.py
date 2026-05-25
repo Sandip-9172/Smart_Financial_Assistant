@@ -498,3 +498,279 @@ def view_goals(request):
         }
 
     )
+    
+    # ------------- View Report ---------------
+@login_required
+def view_report(request):
+
+    report = None
+
+    category_labels = []
+
+    category_data = []
+
+    comparison_labels = []
+
+    comparison_data = []
+
+    insights = []
+
+
+    if request.method == 'POST':
+
+        month = int(request.POST['month'])
+
+        year = int(request.POST['year'])
+
+
+        # ---------- INCOME ----------
+
+        incomes = Income.objects.filter(
+
+            user=request.user,
+
+            date__month=month,
+
+            date__year=year
+
+        )
+
+
+        # ---------- EXPENSE ----------
+
+        expenses = Expense.objects.filter(
+
+            user=request.user,
+
+            date__month=month,
+
+            date__year=year
+
+        )
+
+
+        # ---------- TOTAL INCOME ----------
+
+        total_income = incomes.aggregate(
+
+            Sum('amount')
+
+        )['amount__sum'] or 0
+
+
+        # ---------- TOTAL EXPENSE ----------
+
+        total_expense = expenses.aggregate(
+
+            Sum('amount')
+
+        )['amount__sum'] or 0
+
+
+        # ---------- SAVINGS ----------
+
+        savings = total_income - total_expense
+
+
+        # ==================================================
+        # CATEGORY ANALYTICS
+        # ==================================================
+
+        category_expense = expenses.values(
+
+            'category__name'
+
+        ).annotate(
+
+            total=Sum('amount')
+
+        )
+
+
+        for item in category_expense:
+
+            category_labels.append(
+
+                item['category__name']
+
+            )
+
+            category_data.append(
+
+                float(item['total'])
+
+            )
+
+
+        # ==================================================
+        # MONTHLY COMPARISON
+        # ==================================================
+
+        for m in range(1, 13):
+
+            monthly_total = Expense.objects.filter(
+
+                user=request.user,
+
+                date__month=m,
+
+                date__year=year
+
+            ).aggregate(
+
+                Sum('amount')
+
+            )['amount__sum'] or 0
+
+
+            comparison_labels.append(m)
+
+            comparison_data.append(float(monthly_total))
+
+
+        # ==================================================
+        # AI INSIGHTS
+        # ==================================================
+
+        if total_expense > total_income:
+
+            insights.append(
+
+                "Your expenses are higher than your income."
+
+            )
+
+
+        if savings > 0:
+
+            insights.append(
+
+                "Great! You saved money this month."
+
+            )
+
+
+        if category_expense:
+
+            highest = max(
+
+                category_expense,
+
+                key=lambda x: x['total']
+
+            )
+
+            insights.append(
+
+                f"Highest spending category: {highest['category__name']}"
+            )
+
+
+        # ==================================================
+        # REPORT
+        # ==================================================
+
+        report = {
+
+            'month': month,
+
+            'year': year,
+
+            'total_income': total_income,
+
+            'total_expense': total_expense,
+
+            'savings': savings,
+
+            'expenses': expenses
+
+        }
+
+
+    return render(
+
+        request,
+
+        'view_report.html',
+
+        {
+
+            'report': report,
+
+            'category_labels': category_labels,
+
+            'category_data': category_data,
+
+            'comparison_labels': comparison_labels,
+
+            'comparison_data': comparison_data,
+
+            'insights': insights
+
+        }
+
+    )
+    
+    # ------- Download report -------------
+from django.http import HttpResponse
+import csv
+
+@login_required
+def download_report(request):
+
+    month = request.GET.get('month')
+
+    year = request.GET.get('year')
+
+
+    expenses = Expense.objects.filter(
+
+        user=request.user,
+
+        date__month=month,
+
+        date__year=year
+
+    )
+
+
+    response = HttpResponse(
+
+        content_type='text/csv'
+
+    )
+
+
+    response['Content-Disposition'] = (
+
+        f'attachment; filename="report_{month}_{year}.csv"'
+    )
+
+
+    writer = csv.writer(response)
+
+    writer.writerow([
+
+        'Amount',
+
+        'Category',
+
+        'Date'
+
+    ])
+
+
+    for expense in expenses:
+
+        writer.writerow([
+
+            expense.amount,
+
+            expense.category.name,
+
+            expense.date
+
+        ])
+
+
+    return response
