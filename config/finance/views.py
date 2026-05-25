@@ -151,6 +151,39 @@ def dashboard(request):
     ).count()
 
 
+    # EXPENSE ANALYSIS
+    expense_analysis = Expense.objects.filter(
+
+        user=request.user
+
+    ).values(
+
+        'category__name'
+
+    ).annotate(
+
+        total=Sum('amount')
+
+    )
+
+    # CHART DATA
+    labels = []
+    data = []
+
+    for item in expense_analysis:
+
+        labels.append(
+
+            item['category__name']
+
+        )
+
+        data.append(
+
+            float(item['total'])
+
+        )
+
     # ---------- SEND DATA TO TEMPLATE ----------
 
     context = {
@@ -161,7 +194,11 @@ def dashboard(request):
 
         'savings': savings,
 
-        'active_goals': active_goals
+        'active_goals': active_goals,
+
+        'labels': labels,
+
+        'data': data
 
     }
 

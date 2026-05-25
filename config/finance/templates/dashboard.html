@@ -465,59 +465,43 @@
 
 
     <!-- CHART.JS -->
-
     <script>
 
-        const labels = [
-
-            'Food',
-            'Travel',
-            'Shopping',
-            'Bills',
-            'Entertainment'
-
-        ];
-
-        const data = [
-
-            5000,
-            3000,
-            4000,
-            6000,
-            2000
-
-        ];
-
+        const labels = {{ labels|safe }};
+    
+        const data = {{ data|safe }};
+    
+    
         new Chart(
-
+    
             document.getElementById('expenseChart'),
-
+    
             {
-
+    
                 type:'bar',
-
+    
                 data:{
-
+    
                     labels:labels,
-
+    
                     datasets:[
-
+    
                         {
-
+    
                             label:'Expenses',
-
+    
                             data:data
-
+    
                         }
-
+    
                     ]
-
+    
                 }
-
+    
             }
-
+    
         );
-
+    
     </script>
 
 </body>
