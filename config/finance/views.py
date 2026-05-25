@@ -407,3 +407,57 @@ def set_goal(request):
         'set_goal.html'
 
     )
+    
+    # ---------------view goals ---------------------
+@login_required
+def view_goals(request):
+
+    goals = Goal.objects.filter(
+
+        user=request.user
+
+    )
+
+    goal_data = []
+
+    for goal in goals:
+
+        progress = (
+
+            goal.saved_amount /
+
+            goal.target_amount
+
+        ) * 100
+
+
+        remaining = (
+
+            goal.target_amount -
+
+            goal.saved_amount
+
+        )
+
+
+        goal.progress = round(progress, 2)
+
+        goal.remaining = remaining
+
+
+        goal_data.append(goal)
+
+
+    return render(
+
+        request,
+
+        'view_goals.html',
+
+        {
+
+            'goals': goal_data
+
+        }
+
+    )
