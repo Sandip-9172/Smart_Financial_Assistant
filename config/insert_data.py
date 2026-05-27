@@ -1,6 +1,7 @@
 from finance.models import Income, Expense, Category, Goal
 from django.contrib.auth.models import User
-
+from django.utils import timezone
+from datetime import date
 # Get User
 user = User.objects.get(username='sandip')
 
@@ -191,23 +192,26 @@ print("Expense Data Inserted")
 
 Goal.objects.create(
     user=user,
-    name="Buy Laptop",
-    target_amount=120000,
-    saved_amount=45000
+    name="Buy Mobile",
+    target_amount=35000,
+    target_months=8,
+    start_date=timezone.now()
 )
 
 Goal.objects.create(
     user=user,
     name="Emergency Fund",
     target_amount=200000,
-    saved_amount=80000
+    target_months=12,
+    start_date=date(2025, 3, 15)
 )
 
 Goal.objects.create(
     user=user,
     name="Goa Trip",
     target_amount=50000,
-    saved_amount=20000
+    target_months=7,
+    start_date=date(2026, 5, 25)
 )
 
 print("Goals Inserted")

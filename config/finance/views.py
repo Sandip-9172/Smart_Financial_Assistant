@@ -2,6 +2,7 @@ from rest_framework import viewsets
 from .models import Income, Expense, Goal, Category
 from django.db.models import Sum
 from .serializers import *
+from datetime import date
 
 class IncomeViewSet(viewsets.ModelViewSet):
     queryset = Income.objects.all()
@@ -27,20 +28,15 @@ from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 
-
 # ---------------- REGISTER ----------------
-
 def register_view(request):
-
     if request.method == 'POST':
-
         username = request.POST['username']
         email = request.POST['email']
         password = request.POST['password']
 
         # Check if username already exists
         if User.objects.filter(username=username).exists():
-
             return render(request,
                           'register.html',
                           {'error': 'Username already exists'})
@@ -51,18 +47,12 @@ def register_view(request):
             email=email,
             password=password
         )
-
         return redirect('/login/')
-
     return render(request, 'register.html')
 
-
 # ---------------- LOGIN ----------------
-
 def login_view(request):
-
     if request.method == 'POST':
-
         username = request.POST['username']
         password = request.POST['password']
 
@@ -73,13 +63,11 @@ def login_view(request):
         )
 
         if user is not None:
-
             login(request, user)
-
             return redirect('/dashboard/')
 
         else:
-
+            
             return render(
                 request,
                 'login.html',
@@ -88,80 +76,48 @@ def login_view(request):
 
     return render(request, 'login.html')
 
-
 # ---------------- DASHBOARD ----------------
 from django.contrib.auth.decorators import login_required
-from django.db.models import Sum
-
-from .models import Income, Expense, Goal
-
 
 @login_required
 def dashboard(request):
 
     # ---------- TOTAL INCOME ----------
-
     total_income = Income.objects.filter(
-
         user=request.user
-
     ).aggregate(
-
         Sum('amount')
-
     )['amount__sum']
-
 
     # ---------- TOTAL EXPENSE ----------
-
     total_expense = Expense.objects.filter(
-
         user=request.user
-
     ).aggregate(
-
         Sum('amount')
-
     )['amount__sum']
 
-
     # ---------- HANDLE NONE VALUES ----------
-
     if total_income is None:
-
         total_income = 0
 
-
     if total_expense is None:
-
         total_expense = 0
 
-
     # ---------- SAVINGS ----------
-
     savings = total_income - total_expense
 
-
     # ---------- ACTIVE GOALS ----------
-
     active_goals = Goal.objects.filter(
-
         user=request.user
-
     ).count()
 
 
     # EXPENSE ANALYSIS
     expense_analysis = Expense.objects.filter(
-
         user=request.user
-
     ).values(
-
         'category__name'
-
     ).annotate(
-
         total=Sum('amount')
 
     )
@@ -171,544 +127,304 @@ def dashboard(request):
     data = []
 
     for item in expense_analysis:
-
         labels.append(
-
             item['category__name']
-
         )
 
         data.append(
-
             float(item['total'])
-
         )
 
     # ---------- SEND DATA TO TEMPLATE ----------
-
     context = {
-
         'total_income': total_income,
-
         'total_expense': total_expense,
-
         'savings': savings,
-
         'active_goals': active_goals,
-
         'labels': labels,
-
         'data': data
-
     }
-
-
-    return render(
-
-        request,
-
-        'dashboard.html',
-
-        context
-
-    )
-
+    return render(request, 'dashboard.html', context)
 
 # ---------------- LOGOUT ----------------
-
 def logout_view(request):
-
     logout(request)
-
     return redirect('/')
 
+###########################################################
 # ---------------- Home Page ----------------
-
 def home_view(request):
-
     return render(request,'home_page.html')
 
-from .models import Income
-from django.contrib.auth.decorators import login_required
-
+##########################################################
 # ---------------- Add_income Page ----------------
-
 @login_required
 def add_income(request):
-
     if request.method == 'POST':
-
         amount = request.POST['amount']
-
         source = request.POST['source']
-
         date = request.POST['date']
 
         Income.objects.create(
-
             user=request.user,
-
             amount=amount,
-
             source=source,
-
             date=date
-
         )
 
-        return render(
-            request,
-            'add_income.html',
-            {'success': True}
-        )
+        return render(request,'add_income.html',{'success': True})
+    return render(request,'add_income.html')
 
-    return render(
-        request,
-        'add_income.html'
-    )
+##########################################################
 # ---------------- View _income Page ----------------
-
 @login_required
 def view_income(request):
-
     incomes = Income.objects.filter(
-
         user=request.user
-
     ).order_by('-date')
 
-
     total_income = incomes.aggregate(
-
         Sum('amount')
-
     )['amount__sum']
 
-
     if total_income is None:
-
         total_income = 0
-
 
     return render(request,'view_income.html',{
             'incomes': incomes,
             'total_income': total_income})
 
+##########################################################
 # ---------------- Add_expense Page ----------------
 @login_required
 def add_expense(request):
-
     categories = Category.objects.all()
 
     if request.method == 'POST':
-
         amount = request.POST['amount']
-
         category_id = request.POST['category']
-
         date = request.POST['date']
-
         category = Category.objects.get(
             id=category_id
         )
 
         Expense.objects.create(
-
             user=request.user,
-
             amount=amount,
-
             category=category,
-
             date=date
-
         )
-
-        return render(
-
-            request,
-
-            'add_expense.html',
-
-            {
-
-                'success': True,
-
-                'categories': categories
-
-            }
-
-        )
-
-    return render(
-
-        request,
-
-        'add_expense.html',
-
-        {
-
-            'categories': categories
-
-        }
-
-    )
+        
+        return render(request,'add_expense.html',{'success': True,'categories': categories})
+    return render(request,'add_expense.html',{'categories': categories})
     
+##########################################################
 # ----------------View_expense Page ----------------
 @login_required
 def view_expenses(request):
-
     expenses = Expense.objects.filter(
-
         user=request.user
-
     ).order_by('-date')
 
-
     total_expense = expenses.aggregate(
-
         Sum('amount')
-
     )['amount__sum']
 
-
     if total_expense is None:
-
         total_expense = 0
 
-
-    return render(
-
-        request,
-
-        'view_expense.html',
-
-        {
-
-            'expenses': expenses,
-
-            'total_expense': total_expense
-
-        }
-
-    )
+    return render(request,'view_expense.html',{'expenses': expenses,'total_expense': total_expense})
     
-#----------------SET GOAL Page---------------
-from .models import Goal
-
-
+##########################################################    
+#----------------SET GOAL Page--------------
 @login_required
 def set_goal(request):
-
     if request.method == 'POST':
-
         name = request.POST['name']
-
         target_amount = request.POST['target_amount']
-
-        saved_amount = request.POST['saved_amount']
-
+        target_months = request.POST['target_months']
+        start_date = request.POST['start_date']
 
         Goal.objects.create(
-
             user=request.user,
-
             name=name,
-
             target_amount=target_amount,
-
-            saved_amount=saved_amount
-
+            target_months=target_months,
+            start_date=start_date
         )
 
+        return render(request,'set_goal.html',{'success': True})
+    return render(request,'set_goal.html')
 
-        return render(
-
-            request,
-
-            'set_goal.html',
-
-            {
-
-                'success': True
-
-            }
-
-        )
-
-
-    return render(
-
-        request,
-
-        'set_goal.html'
-
-    )
-    
+##########################################################
     # ---------------view goals ---------------------
 @login_required
 def view_goals(request):
-
-    goals = Goal.objects.filter(
-
-        user=request.user
-
-    )
-
+    goals = Goal.objects.filter(user=request.user)
     goal_data = []
+    total_income = Income.objects.filter(
+        user=request.user
+    ).aggregate(
+        Sum('amount')
+    )['amount__sum'] or 0
+
+    total_expense = Expense.objects.filter(
+        user=request.user
+    ).aggregate(
+        Sum('amount')
+    )['amount__sum'] or 0
+
+    total_savings = total_income - total_expense
 
     for goal in goals:
+        monthly_required = (goal.target_amount /goal.target_months)
+        # PROGRESS %
+        progress = (total_savings /goal.target_amount) * 100
 
-        progress = (
+        if progress > 100:
+            progress = 100
+            
+        # REMAINING AMOUNT
+        remaining = (goal.target_amount - total_savings)
 
-            goal.saved_amount /
+        if remaining < 0:
+            remaining = 0
 
-            goal.target_amount
-
-        ) * 100
-
-
-        remaining = (
-
-            goal.target_amount -
-
-            goal.saved_amount
-
+        # MONTHS PASSED
+        today = date.today()
+        
+        months_passed = (
+            (today.year - goal.start_date.year) * 12 +
+            (today.month - goal.start_date.month)
         )
 
+        # ESTIMATED STATUS
+        if months_passed <= goal.target_months:
+            status = "On Track"
+        else:
+            status = "Delayed"
 
+        # ATTACH DYNAMIC VALUES
         goal.progress = round(progress, 2)
-
-        goal.remaining = remaining
-
-
+        goal.remaining = round(remaining, 2)
+        goal.monthly_required = round(monthly_required,2)
+        goal.status = status
+        goal.total_savings = round(total_savings,2)
         goal_data.append(goal)
 
+    return render(request,'view_goals.html',{'goals': goal_data})    
 
-    return render(
-
-        request,
-
-        'view_goals.html',
-
-        {
-
-            'goals': goal_data
-
-        }
-
-    )
-    
+##########################################################
     # ------------- View Report ---------------
 @login_required
 def view_report(request):
-
     report = None
-
     category_labels = []
-
     category_data = []
-
     comparison_labels = []
-
     comparison_data = []
-
     insights = []
 
-
     if request.method == 'POST':
-
         month = int(request.POST['month'])
-
         year = int(request.POST['year'])
 
-
         # ---------- INCOME ----------
-
         incomes = Income.objects.filter(
-
             user=request.user,
-
             date__month=month,
-
             date__year=year
-
         )
-
 
         # ---------- EXPENSE ----------
-
         expenses = Expense.objects.filter(
-
             user=request.user,
-
             date__month=month,
-
             date__year=year
-
         )
-
 
         # ---------- TOTAL INCOME ----------
-
         total_income = incomes.aggregate(
-
             Sum('amount')
-
         )['amount__sum'] or 0
-
 
         # ---------- TOTAL EXPENSE ----------
-
         total_expense = expenses.aggregate(
-
             Sum('amount')
-
         )['amount__sum'] or 0
 
-
         # ---------- SAVINGS ----------
-
         savings = total_income - total_expense
 
-
-        # ==================================================
         # CATEGORY ANALYTICS
-        # ==================================================
-
         category_expense = expenses.values(
-
             'category__name'
-
         ).annotate(
-
             total=Sum('amount')
-
         )
 
-
         for item in category_expense:
-
             category_labels.append(
-
                 item['category__name']
-
             )
-
+            
             category_data.append(
-
                 float(item['total'])
-
             )
 
-
-        # ==================================================
         # MONTHLY COMPARISON
-        # ==================================================
-
         for m in range(1, 13):
-
             monthly_total = Expense.objects.filter(
-
                 user=request.user,
-
                 date__month=m,
-
                 date__year=year
-
             ).aggregate(
-
                 Sum('amount')
-
             )['amount__sum'] or 0
 
-
             comparison_labels.append(m)
-
             comparison_data.append(float(monthly_total))
 
-
-        # ==================================================
         # AI INSIGHTS
-        # ==================================================
-
         if total_expense > total_income:
-
             insights.append(
-
                 "Your expenses are higher than your income."
-
             )
-
 
         if savings > 0:
-
             insights.append(
-
                 "Great! You saved money this month."
-
             )
-
 
         if category_expense:
-
             highest = max(
-
                 category_expense,
-
                 key=lambda x: x['total']
-
             )
 
             insights.append(
-
                 f"Highest spending category: {highest['category__name']}"
             )
 
-
-        # ==================================================
         # REPORT
-        # ==================================================
-
         report = {
-
             'month': month,
-
             'year': year,
-
             'total_income': total_income,
-
             'total_expense': total_expense,
-
             'savings': savings,
-
             'expenses': expenses
-
         }
 
-
-    return render(
-
-        request,
-
-        'view_report.html',
-
+    return render(request,'view_report.html',
         {
-
             'report': report,
-
             'category_labels': category_labels,
-
             'category_data': category_data,
-
             'comparison_labels': comparison_labels,
-
             'comparison_data': comparison_data,
-
             'insights': insights
-
         }
-
     )
     
     # ------- Download report -------------
@@ -717,60 +433,31 @@ import csv
 
 @login_required
 def download_report(request):
-
     month = request.GET.get('month')
-
     year = request.GET.get('year')
-
-
+    
     expenses = Expense.objects.filter(
-
         user=request.user,
-
         date__month=month,
-
         date__year=year
-
     )
-
-
-    response = HttpResponse(
-
-        content_type='text/csv'
-
-    )
-
-
+    response = HttpResponse(content_type='text/csv')
     response['Content-Disposition'] = (
-
         f'attachment; filename="report_{month}_{year}.csv"'
     )
 
-
     writer = csv.writer(response)
-
     writer.writerow([
-
         'Amount',
-
         'Category',
-
         'Date'
-
     ])
 
-
     for expense in expenses:
-
         writer.writerow([
-
             expense.amount,
-
             expense.category.name,
-
             expense.date
-
         ])
-
 
     return response

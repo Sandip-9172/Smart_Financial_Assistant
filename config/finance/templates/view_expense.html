@@ -1,104 +1,57 @@
 {% extends 'base.html' %}
 
 {% block title %}
-
 View Expenses
-
 {% endblock %}
 
 
 {% block content %}
 
-<style>
-
-</style>
-
-
 <!-- PAGE HEADER -->
-
 <div class="page-header">
-
-    <h1>
-
-        Expense History
-
-    </h1>
-
+    <h1> Expense History </h1>
 </div>
-
 
 <!-- SUMMARY CARD -->
-
 <div class="summary-card">
-
-    <h2>
-
-        Total Expenses
-
-    </h2>
-
+    <h2> Total Expenses </h2>
     <p>
-
         ₹ {{ total_expense }}
-
     </p>
-
 </div>
 
-
 <!-- TABLE -->
-
 <div class="table-container">
-
     <table>
-
         <tr>
-
             <th>
-
                 Amount
-
             </th>
 
             <th>
-
                 Category
-
             </th>
 
             <th>
-
                 Date
-
             </th>
-
         </tr>
 
 
         {% for expense in expenses %}
-
         <tr>
-
             <td>
-
                 ₹ {{ expense.amount }}
-
             </td>
 
             <td>
-
                 <span class="category">
-
                     {{ expense.category.name }}
-
                 </span>
-
             </td>
 
             <td>
-
                 {{ expense.date }}
-
             </td>
 
         </tr>

@@ -1,11 +1,8 @@
 {% extends 'base.html' %}
 
 {% block title %}
-
 Monthly Report
-
 {% endblock %}
-
 
 {% block content %}
 
@@ -243,49 +240,32 @@ Monthly Report
 
 
 <div class="report-container">
-
     <!-- TOP SECTION -->
 
     <div class="report-top">
-
         <div class="report-title">
-
             <h1>
-
                 Monthly Financial Report
-
             </h1>
 
             <p>
-
                 Analyze your income, expenses and savings
-
             </p>
 
         </div>
-
     </div>
 
 
     <!-- FILTER FORM -->
 
     <div class="filter-box">
-
-        <form method="POST"
-              class="filter-form">
-
+        <form method="POST"class="filter-form">
             {% csrf_token %}
 
             <!-- MONTH -->
-
-            <select name="month"
-                    class="input-box"
-                    required>
-
+            <select name="month" class="input-box" required>
                 <option value="">
-
                     Select Month
-
                 </option>
 
                 <option value="1">January</option>
@@ -303,27 +283,13 @@ Monthly Report
 
             </select>
 
-
             <!-- YEAR -->
+            <input type="number" name="year" placeholder="Enter Year" class="input-box" required>
 
-            <input type="number"
-                   name="year"
-                   placeholder="Enter Year"
-                   class="input-box"
-                   required>
-
-
-            <!-- BUTTON -->
-
-            <button type="submit"
-                    class="btn">
-
+            <button type="submit" class="btn">
                 Generate Report
-
             </button>
-
         </form>
-
     </div>
 
 
@@ -332,125 +298,75 @@ Monthly Report
     <!-- SUMMARY CARDS -->
 
     <div class="cards">
-
         <!-- TOTAL INCOME -->
-
         <div class="card">
-
             <h2>
-
                 Total Income
-
             </h2>
 
             <p class="income">
-
                 ₹ {{ report.total_income }}
-
             </p>
-
         </div>
 
-
         <!-- TOTAL EXPENSE -->
-
         <div class="card">
-
             <h2>
-
                 Total Expense
-
             </h2>
 
             <p class="expense">
-
                 ₹ {{ report.total_expense }}
-
             </p>
 
         </div>
 
-
         <!-- SAVINGS -->
-
         <div class="card">
-
             <h2>
-
                 Savings
-
             </h2>
 
             <p class="saving">
-
                 ₹ {{ report.savings }}
-
             </p>
-
         </div>
-
     </div>
 
-
     <!-- EXPENSE TABLE -->
-
     <div class="table-container">
-
         <h2>
-
             Expense Transactions
-
         </h2>
-
         <br>
-
         <table>
-
             <tr>
-
                 <th>
-
                     Amount
-
                 </th>
 
                 <th>
-
                     Category
-
                 </th>
 
                 <th>
-
                     Date
-
                 </th>
-
             </tr>
 
-
             {% for expense in report.expenses %}
-
             <tr>
-
                 <td>
-
                     ₹ {{ expense.amount }}
-
                 </td>
 
                 <td>
-
                     {{ expense.category.name }}
-
                 </td>
 
                 <td>
-
                     {{ expense.date }}
-
                 </td>
-
             </tr>
 
             {% endfor %}
@@ -458,170 +374,96 @@ Monthly Report
         </table>
         
     <!-- CATEGORY ANALYTICS -->
-
     <br><br>
-
     <div class="table-container">
-
         <h2>
-
             Expense Category Analytics
-
         </h2>
-
         <br>
-
         <div class="chart-box">
-
             <canvas id="categoryChart"></canvas>
-    
         </div>
-    
-
     </div>
 
-
     <!-- MONTHLY COMPARISON -->
-
     <br><br>
-
     <div class="table-container">
-
         <h2>
-
             Monthly Expense Comparison
-
         </h2>
-
         <br>
-
         <div class="chart-box">
-
             <canvas id="comparisonChart"></canvas>
-    
         </div>
-
     </div>
 
 
     <!-- AI INSIGHTS -->
-
     <br><br>
-
     <div class="table-container">
-
         <h2>
-
             Smart Insights
-
         </h2>
 
         <br>
-
         <ul>
-
             {% for insight in insights %}
-
                 <li>
-
                     {{ insight }}
-
                 </li>
-
                 <br>
-
             {% endfor %}
 
         </ul>
-
     </div>
 
         <!-- DOWNLOAD BUTTON -->
-
         <a href="/download-report/?month={{ report.month }}&year={{ report.year }}">
-
             <button class="btn download-btn">
-
                 Download Report
-
             </button>
-
         </a>
 
     </div>
     <script>
+        // CATEGORY PIE CHART        
 
-        // =====================================
-        // CATEGORY PIE CHART
-        // =====================================
-    
         new Chart(
-    
-            document.getElementById('categoryChart'),
-    
+            document.getElementById('categoryChart'),    
             {
-    
                 type:'pie',
-    
-                data:{
-    
-                    labels: {{ category_labels|safe }},
-    
+                data:{    
+                    labels: {{ category_labels|safe }},    
                     datasets:[{
-    
                         data: {{ category_data|safe }}
-    
                     }]
-    
                 },
-    
-                options:{
-    
+
+                options:{    
                     responsive:true,
-    
                     maintainAspectRatio:false
-                }
-    
+                }    
             }
-    
         );
-    
-    
-        // =====================================
+
         // MONTHLY COMPARISON BAR CHART
-        // =====================================
-    
         new Chart(
-    
-            document.getElementById('comparisonChart'),
-    
+                document.getElementById('comparisonChart'),
             {
-    
                 type:'bar',
-    
                 data:{
-    
                     labels: {{ comparison_labels|safe }},
-    
                     datasets:[{
-    
                         label:'Monthly Expenses',
-    
                         data: {{ comparison_data|safe }}
-    
                     }]
-    
                 },
     
                 options:{
-    
                     responsive:true,
-    
                     maintainAspectRatio:false
                 }
-    
             }
-    
         );
     
     </script>

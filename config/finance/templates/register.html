@@ -132,66 +132,33 @@
 
     <div class="container">
 
-        <h1>
-
-            Create Account
-
-        </h1>
+        <h1>Create Account</h1>
 
         {% if error %}
-
             <p class="error">
-
                 {{ error }}
-
             </p>
-
         {% endif %}
 
         <form method="POST">
 
             {% csrf_token %}
 
-            <input type="text"
-                   name="username"
-                   placeholder="Enter Username"
-                   class="input-box"
-                   required>
+            <input type="text" name="username" placeholder="Enter Username" class="input-box" required>
 
-            <input type="email"
-                   name="email"
-                   placeholder="Enter Email"
-                   class="input-box"
-                   required>
+            <input type="email" name="email" placeholder="Enter Email" class="input-box" required>
 
-            <input type="password"
-                   name="password"
-                   placeholder="Enter Password"
-                   class="input-box"
-                   required>
+            <input type="password" name="password" placeholder="Enter Password" class="input-box" required>
 
-            <button type="submit"
-                    class="btn">
-
+            <button type="submit"class="btn">
                 Register
-
             </button>
-
         </form>
 
         <div class="bottom-text">
-
             Already have an account?
-
-            <a href="/login/">
-
-                Login
-
-            </a>
-
+            <a href="/login/">Login</a>
         </div>
-
     </div>
-
 </body>
 </html>

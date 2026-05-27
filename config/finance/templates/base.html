@@ -3,116 +3,49 @@
 <!DOCTYPE html>
 <html>
 <head>
-
     <title>
-
         {% block title %}
 
         {% endblock %}
-
     </title>
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-    <link rel="stylesheet"
-          href="{% static 'css/style.css' %}">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
 
 </head>
 
 <body>
-
     <!-- NAVBAR -->
-
     <div class="navbar">
-
         <div class="logo">
-
             Finance Manager
-
         </div>
 
         <div class="profile">
-
             Welcome {{ request.user.username }}
-
         </div>
-
     </div>
-
-
-    <!-- SIDEBAR -->
-
     
     <!-- SIDEBAR -->
-
     <div class="sidebar">
+        <a href="/dashboard/">Dashboard</a>
 
-        <a href="/dashboard/">
+        <a href="/add-income/">Add Income</a>
 
-            Dashboard
+        <a href="/view-income/">View Income</a>
 
-        </a>
+        <a href="/add-expense/">Add Expense</a>
+        
+        <a href="/view-expenses/">View Expenses</a>
 
-        <a href="/add-income/">
+        <a href="/set-goal/">Set Goal</a>
+        
+        <a href="/view-goals/">View Goals</a>
 
-            Add Income
+        <a href="/view-report/">View Reports</a>
 
-        </a>
-
-        <a href="/add-expense/">
-
-            Add Expense
-
-        </a>
-
-        <a href="/set-goal/">
-
-            Set Goal
-
-        </a>
-
-        <a href="/view-expenses/">
-
-            View Expenses
-
-        </a>
-
-        <a href="/view-income/">
-
-            View Income
-
-        </a>
-
-        <a href="/view-goals/">
-
-            View Goals
-
-        </a>
-<!-- 
-        <a href="/generate-report/">
-
-            Generate Report
-
-        </a> -->
-
-        <a href="/view-report/">
-
-            View Reports
-
-        </a>
-
-        <!-- <a href="/analytics/">
-
-            Data Analytics
-
-        </a> -->
-
-        <a href="/logout/">
-
-            Logout
-
-        </a>
-
+        <a href="/logout/">Logout</a>
     </div>
 
     <!-- MAIN CONTENT -->
@@ -124,15 +57,5 @@
         {% endblock %}
 
     </div>
-
-
-    <!-- FOOTER -->
-<!-- 
-    <div class="footer">
-        <p>
-            Personal Finance Management System
-        </p>
-    </div> -->
-
 </body>
 </html>

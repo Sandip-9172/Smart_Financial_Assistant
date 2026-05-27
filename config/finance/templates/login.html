@@ -25,8 +25,7 @@
 
             display:flex;
             justify-content:center;
-            align-items:center;
-        }
+            align-items:center}
 
         .container{
 
@@ -132,57 +131,27 @@
 
     <div class="container">
 
-        <h1>
-
-            User Login
-
-        </h1>
+        <h1>User Login</h1>
 
         {% if error %}
-
-            <p class="error">
-
-                {{ error }}
-
-            </p>
-
+            <p class="error">{{ error }}</p>
         {% endif %}
 
         <form method="POST">
 
             {% csrf_token %}
 
-            <input type="text"
-                   name="username"
-                   placeholder="Enter Username"
-                   class="input-box"
-                   required>
+            <input type="text" name="username" placeholder="Enter Username" class="input-box" required>
 
-            <input type="password"
-                   name="password"
-                   placeholder="Enter Password"
-                   class="input-box"
-                   required>
+            <input type="password" name="password" placeholder="Enter Password" class="input-box" required>
 
-            <button type="submit"
-                    class="btn">
-
-                Login
-
-            </button>
+            <button type="submit" class="btn"> Login </button>
 
         </form>
 
         <div class="bottom-text">
-
             Don't have an account?
-
-            <a href="/register/">
-
-                Register
-
-            </a>
-
+            <a href="/register/"> Register </a>
         </div>
 
     </div>

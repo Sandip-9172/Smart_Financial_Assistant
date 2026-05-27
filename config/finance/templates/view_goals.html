@@ -1,11 +1,8 @@
 {% extends 'base.html' %}
 
 {% block title %}
-
 View Goals
-
 {% endblock %}
-
 
 {% block content %}
 
@@ -154,105 +151,75 @@ View Goals
 <!-- PAGE HEADER -->
 
 <div class="page-header">
-
     <h1>
-
         Financial Goals
-
     </h1>
 
-    <a href="/set-goal/"
-       class="add-btn">
-
+    <a href="/set-goal/"class="add-btn">
         + Add Goal
-
     </a>
-
 </div>
 
-
 <!-- GOAL CARDS -->
-
 <div class="goal-grid">
-
     {% for goal in goals %}
-
     <div class="goal-card">
-
-        <!-- GOAL TITLE -->
-
         <h2 class="goal-title">
-
             {{ goal.name }}
-
         </h2>
 
-
-        <!-- TARGET -->
-
         <p class="goal-info">
-
             Target Amount:
             <span>
-
                 ₹ {{ goal.target_amount }}
-
             </span>
-
         </p>
 
-
-        <!-- SAVED -->
-
         <p class="goal-info">
-
-            Saved Amount:
+            Monthly Saving Required:
             <span>
-
-                ₹ {{ goal.saved_amount }}
-
+                ₹ {{ goal.monthly_required }}
             </span>
-
+        </p>
+        
+        <p class="goal-info">
+            Current Savings:        
+            <span>        
+                ₹ {{ goal.total_savings }}        
+            </span>        
+        </p>
+                
+        <p class="goal-info">        
+            Goal Duration:        
+            <span>        
+                {{ goal.target_months }} Months        
+            </span>        
+        </p>        
+        
+        <p class="goal-info">        
+            Status:        
+            <span>        
+                {{ goal.status }}        
+            </span>        
         </p>
 
-
-        <!-- REMAINING -->
-
         <p class="goal-info">
-
             Remaining:
             <span>
-
                 ₹ {{ goal.remaining }}
-
             </span>
-
         </p>
 
-
-        <!-- PROGRESS BAR -->
-
         <div class="progress-container">
-
             <div class="progress-bar" style=" width: {{ goal.progress }} %; ">
-
             </div>
-
         </div>
-
-
-        <!-- PERCENTAGE -->
 
         <div class="progress-text">
-
             {{ goal.progress }}%
-
         </div>
-
     </div>
-
     {% endfor %}
 
 </div>
-
 {% endblock %}

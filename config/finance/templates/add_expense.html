@@ -1,89 +1,41 @@
 {% extends 'base.html' %}
 
-{% block title %}
-
-Add Expense
-
-{% endblock %}
-
+{% block title %}Add Expense{% endblock %}
 
 {% block content %}
 
 <div class="container">
-
-    <h1>
-
-        Add Expense
-
-    </h1>
+    <h1>Add Expense</h1>
 
     {% if success %}
-
         <p class="success">
-
             Expense Added Successfully
-
         </p>
-
     {% endif %}
 
     <form method="POST">
 
         {% csrf_token %}
 
-        <!-- AMOUNT -->
+        <input type="number"name="amount"placeholder="Enter Amount"class="input-box"required>
 
-        <input type="number"
-               name="amount"
-               placeholder="Enter Amount"
-               class="input-box"
-               required>
+        <select name="category"class="input-box"required>
 
-
-        <!-- CATEGORY -->
-
-        <select name="category"
-                class="input-box"
-                required>
-
-            <option value="">
-
-                Select Category
-
-            </option>
+            <option value="">Select Category</option>
 
             {% for category in categories %}
-
-                <option value="{{ category.id }}">
-
-                    {{ category.name }}
-
-                </option>
-
+                <option value="{{ category.id }}">{{ category.name }}</option>
             {% endfor %}
 
         </select>
 
+        <input type="date" name="date" class="input-box" required>
 
-        <!-- DATE -->
-
-        <input type="date"
-               name="date"
-               class="input-box"
-               required>
-
-
-        <!-- BUTTON -->
-
-        <button type="submit"
-                class="btn">
-
+        <button type="submit" class="btn">
             Save Expense
-
         </button>
-
+        
     </form>
-
 </div>
 
 {% endblock %}

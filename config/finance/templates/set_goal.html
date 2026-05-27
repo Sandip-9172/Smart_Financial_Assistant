@@ -1,44 +1,29 @@
 {% extends 'base.html' %}
 
 {% block title %}
-
 Set Goal
-
 {% endblock %}
 
 
 {% block content %}
 
 <div class="goal-container">
-
     <!-- HEADER -->
-
     <div class="goal-header">
-        <h1>
-
-            Set Financial Goal
-
-        </h1>
+        <h1> Set Financial Goal </h1>
 
         <p>
-
             Plan your future savings and track progress effectively
-
         </p>
 
     </div>
 
 
     <!-- SUCCESS MESSAGE -->
-
     {% if success %}
-
         <div class="success">
-
             Goal Added Successfully
-
         </div>
-
     {% endif %}
 
 
@@ -51,69 +36,33 @@ Set Goal
         <!-- GOAL NAME -->
 
         <div class="form-group">
-
-            <label>
-
-                Goal Name
-
-            </label>
-
-            <input type="text"
-                   name="name"
-                   placeholder="Example: Buy Laptop"
-                   class="input-box"
-                   required>
-
+            <label>Goal Name</label>
+            <input type="text" name="name" placeholder="Example: Buy Laptop" class="input-box" required>
         </div>
-
 
         <!-- TARGET AMOUNT -->
-
         <div class="form-group">
-
-            <label>
-
-                Target Amount
-
-            </label>
-
-            <input type="number"
-                   name="target_amount"
-                   placeholder="Enter Target Amount"
-                   class="input-box"
-                   required>
-
+            <label>Target Amount</label>
+            <input type="number" name="target_amount" placeholder="Enter Target Amount" class="input-box" required>
         </div>
 
 
-        <!-- SAVED AMOUNT -->
-
+        <!-- TARGET MONTHS -->
         <div class="form-group">
-
-            <label>
-
-                Current Saved Amount
-
-            </label>
-
-            <input type="number"
-                   name="saved_amount"
-                   placeholder="Enter Current Savings"
-                   class="input-box"
-                   required>
-
+            <label> Target Duration (Months) </label>
+            <input type="number" name="target_months" placeholder="Example: 12" class="input-box" required>
         </div>
 
+        <!-- START DATE -->
+        <div class="form-group">
+            <label>Goal Start Date</label>
+            <input type="date" name="start_date" class="input-box" required>
+        </div>
 
         <!-- BUTTON -->
-
-        <button type="submit"
-                class="btn">
-
+        <button type="submit" class="btn">
             Save Goal
-
         </button>
-
     </form>
 
 </div>
