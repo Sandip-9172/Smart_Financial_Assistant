@@ -2,7 +2,10 @@ from rest_framework import viewsets
 from .models import Income, Expense, Goal, Category
 from django.db.models import Sum
 from .serializers import *
-from datetime import date
+from datetime import date,datetime
+
+# ML models 
+from finance.ml_models.predict import predict_expense
 
 class IncomeViewSet(viewsets.ModelViewSet):
     queryset = Income.objects.all()
@@ -135,16 +138,34 @@ def dashboard(request):
             float(item['total'])
         )
 
-    # ---------- SEND DATA TO TEMPLATE ----------
+    # ---------- ALL CATEGORIES FOR DROPDOWN ----------
+    categories = Category.objects.all()
+ 
+    # ---------- SELECTED CATEGORY PREDICTION ----------
+    selected_category = None
+    predicted_amount  = None
+ 
+    if request.method == 'POST':
+        selected_category = request.POST.get('category')
+ 
+        if selected_category:
+            from finance.ml_models.predict import predict_next_month
+            predicted_amount = predict_next_month(selected_category)
+ 
+    # ---------- CONTEXT ----------
     context = {
-        'total_income': total_income,
-        'total_expense': total_expense,
-        'savings': savings,
-        'active_goals': active_goals,
-        'labels': labels,
-        'data': data
+        'total_income':       total_income,
+        'total_expense':      total_expense,
+        'savings':            savings,
+        'active_goals':       active_goals,
+        'labels':             labels,
+        'data':               data,
+        'categories':         categories,
+        'selected_category':  selected_category,
+        'predicted_amount':   predicted_amount,
     }
     return render(request, 'dashboard.html', context)
+
 
 # ---------------- LOGOUT ----------------
 def logout_view(request):

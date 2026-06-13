@@ -128,6 +128,80 @@
             background:#1d4ed8;
         }
 
+        /* ---------- PREDICTION SECTION ---------- */
+        .prediction-section{
+            background:white;
+            padding:30px;
+            border-radius:12px;
+            box-shadow:0 5px 15px rgba(0,0,0,0.1);
+            margin-bottom:40px;
+        }
+ 
+        .prediction-section h2{
+            color:#0f172a;
+            margin-bottom:20px;
+            font-size:22px;
+        }
+ 
+        .prediction-form{
+            display:flex;
+            align-items:center;
+            gap:15px;
+            flex-wrap:wrap;
+        }
+ 
+        .prediction-form select{
+            padding:12px 18px;
+            border:1px solid #cbd5e1;
+            border-radius:8px;
+            font-size:16px;
+            min-width:220px;
+            color:#0f172a;
+        }
+ 
+        .prediction-form button{
+            padding:12px 24px;
+            background:#2563eb;
+            color:white;
+            border:none;
+            border-radius:8px;
+            font-size:16px;
+            font-weight:bold;
+            cursor:pointer;
+            transition:0.3s;
+        }
+ 
+        .prediction-form button:hover{
+            background:#1d4ed8;
+        }
+ 
+        .prediction-result{
+            margin-top:25px;
+            padding:20px 25px;
+            background:#f0f9ff;
+            border-left:5px solid #2563eb;
+            border-radius:8px;
+        }
+ 
+        .prediction-result h3{
+            color:#475569;
+            font-size:16px;
+            margin-bottom:8px;
+        }
+ 
+        .prediction-result p{
+            font-size:32px;
+            font-weight:bold;
+            color:#2563eb;
+        }
+ 
+        .prediction-result .category-label{
+            font-size:14px;
+            color:#94a3b8;
+            margin-top:6px;
+        }
+ 
+
         /* ---------- FOOTER ---------- */
 
         .footer{
@@ -211,6 +285,37 @@
                 </p>
             </div>
         </div>
+        
+        <!-- ML PREDICTION SECTION -->
+        <div class="prediction-section">
+            <h2> Next Month Expense Prediction</h2>
+ 
+            <form method="POST" class="prediction-form">
+                {% csrf_token %}
+ 
+                <select name="category" required>
+                    <option value="">-- Select Category --</option>
+                    {% for category in categories %}
+                        <option value="{{ category.name }}"
+                            {% if selected_category == category.name %}selected{% endif %}>
+                            {{ category.name }}
+                        </option>
+                    {% endfor %}
+                </select>
+ 
+                <button type="submit">Predict</button>
+            </form>
+ 
+            <!-- RESULT — shown only after form submit -->
+            {% if predicted_amount is not None %}
+                <div class="prediction-result">
+                    <h3>Predicted expense for next month</h3>
+                    <p>₹ {{ predicted_amount }}</p>
+                    <div class="category-label">Category: {{ selected_category }}</div>
+                </div>
+            {% endif %}
+        </div>
+ 
 
         <!-- CHART SECTION -->
         <div class="chart-container">
