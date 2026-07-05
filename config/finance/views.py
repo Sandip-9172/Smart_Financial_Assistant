@@ -25,6 +25,14 @@ class CategoryViewSet(viewsets.ModelViewSet):
 
 
 # Create your views here.
+from finance.ml_models.goal_ml import (
+    goal_success_probability,
+    smart_saving_recommendation,
+    predict_completion_date,
+    goal_risk_alert,
+    suggest_optimal_goal,
+)
+
 # frontend views 
 from django.shortcuts import render, redirect
 from django.contrib.auth.models import User
@@ -257,15 +265,241 @@ def view_expenses(request):
     return render(request,'view_expense.html',{'expenses': expenses,'total_expense': total_expense})
     
 ##########################################################    
-#----------------SET GOAL Page--------------
+#----------------VIEW GOAL Page--------------
+ # Replace your view_goals() in views.py with this:
+
+@login_required
+def view_goals(request):
+    from datetime import date
+    from django.db.models.functions import TruncMonth
+
+    goals      = Goal.objects.filter(user=request.user)
+    today      = date.today()
+    this_month = today.month
+    this_year  = today.year
+
+    # -------------------------------------------------------
+    # AVG MONTHLY INCOME & EXPENSE — for Feature 5 suggester
+    # -------------------------------------------------------
+    monthly_income_qs = (
+        Income.objects.filter(user=request.user)
+        .annotate(month=TruncMonth('date'))
+        .values('month')
+        .annotate(total=Sum('amount'))
+    )
+    monthly_expense_qs = (
+        Expense.objects.filter(user=request.user)
+        .annotate(month=TruncMonth('date'))
+        .values('month')
+        .annotate(total=Sum('amount'))
+    )
+
+    avg_monthly_income = (
+        sum(x['total'] for x in monthly_income_qs) / monthly_income_qs.count()
+        if monthly_income_qs.count() > 0 else 0
+    )
+    avg_monthly_expense = (
+        sum(x['total'] for x in monthly_expense_qs) / monthly_expense_qs.count()
+        if monthly_expense_qs.count() > 0 else 0
+    )
+
+    # -------------------------------------------------------
+    # BUILD GOAL DATA
+    # -------------------------------------------------------
+    goal_data = []
+
+    for goal in goals:
+
+        months_passed = (
+            (today.year  - goal.start_date.year) * 12 +
+            (today.month - goal.start_date.month)
+        )
+        months_remaining = max(0, goal.target_months - months_passed)
+
+        # ---------------------------------------------------
+        # CUMULATIVE SAVINGS SINCE GOAL START DATE
+        # Total income - total expense from goal start → today
+        # ---------------------------------------------------
+        income_since_start = Income.objects.filter(
+            user=request.user,
+            date__gte=goal.start_date       # >= goal start date
+        ).aggregate(Sum('amount'))['amount__sum'] or 0
+
+        expense_since_start = Expense.objects.filter(
+            user=request.user,
+            date__gte=goal.start_date       # >= goal start date
+        ).aggregate(Sum('amount'))['amount__sum'] or 0
+
+        # How much actually saved since goal started
+        saved_so_far = max(0, income_since_start - expense_since_start)
+
+        # ---------------------------------------------------
+        # CURRENT MONTH SAVINGS (for "this month" display)
+        # ---------------------------------------------------
+        current_month_income = Income.objects.filter(
+            user=request.user,
+            date__month=this_month,
+            date__year=this_year
+        ).aggregate(Sum('amount'))['amount__sum'] or 0
+
+        current_month_expense = Expense.objects.filter(
+            user=request.user,
+            date__month=this_month,
+            date__year=this_year
+        ).aggregate(Sum('amount'))['amount__sum'] or 0
+
+        current_month_savings = current_month_income - current_month_expense
+
+        # ---------------------------------------------------
+        # AVG MONTHLY SAVINGS RATE (last 3 months) — for predictions
+        # ---------------------------------------------------
+        monthly_rates = []
+        for i in range(1, 4):
+            m = this_month - i
+            y = this_year
+            if m <= 0:
+                m += 12
+                y -= 1
+
+            inc = Income.objects.filter(
+                user=request.user, date__month=m, date__year=y
+            ).aggregate(Sum('amount'))['amount__sum'] or 0
+
+            exp = Expense.objects.filter(
+                user=request.user, date__month=m, date__year=y
+            ).aggregate(Sum('amount'))['amount__sum'] or 0
+
+            monthly_rates.append(inc - exp)
+
+        avg_monthly_savings = sum(monthly_rates) / len(monthly_rates) if monthly_rates else 0
+
+        # ---------------------------------------------------
+        # CORE CALCULATIONS (cumulative-aware)
+        # ---------------------------------------------------
+
+        # Overall progress % based on cumulative savings
+        progress = min(100, round((saved_so_far / goal.target_amount) * 100, 2)) if goal.target_amount > 0 else 0
+
+        # Remaining amount after deducting what's already saved
+        true_remaining = max(0, round(goal.target_amount - saved_so_far, 2))
+
+        # Required per month going forward (reduced by what's already saved)
+        if months_remaining > 0:
+            adjusted_monthly_required = round(true_remaining / months_remaining, 2)
+        elif true_remaining > 0:
+            adjusted_monthly_required = true_remaining   # overdue, full amount needed
+        else:
+            adjusted_monthly_required = 0                # goal achieved
+
+        # How much more needed THIS month vs what's already saved this month
+        still_needed_this_month = max(0, round(adjusted_monthly_required - current_month_savings, 2))
+
+        # Status
+        if true_remaining <= 0:
+            status = "Achieved! 🎉"
+        elif current_month_savings >= adjusted_monthly_required:
+            status = "On Track ✅"
+        else:
+            status = "Behind This Month ⚠️"
+
+        # ---- FEATURE 1: Success Probability ----
+        ml_probability = goal_success_probability(
+            current_savings      = saved_so_far,
+            target_amount        = goal.target_amount,
+            months_remaining     = months_remaining,
+            monthly_savings_rate = avg_monthly_savings
+        )
+
+        # ---- FEATURE 2: Smart Recommendation ----
+        ml_recommendation = smart_saving_recommendation(
+            target_amount       = true_remaining,        # only remaining amount
+            target_months       = max(1, months_remaining),
+            avg_monthly_savings = avg_monthly_savings
+        )
+
+        # ---- FEATURE 3: Completion Date ----
+        ml_completion = predict_completion_date(
+            current_savings      = saved_so_far,
+            target_amount        = goal.target_amount,
+            monthly_savings_rate = avg_monthly_savings,
+            start_date           = goal.start_date
+        )
+
+        # ---- FEATURE 4: Risk Alert ----
+        ml_risk = goal_risk_alert(
+            current_savings      = saved_so_far,
+            target_amount        = goal.target_amount,
+            target_months        = goal.target_months,
+            months_passed        = months_passed,
+            monthly_savings_rate = avg_monthly_savings
+        )
+
+        # Attach all values to goal object
+        goal.saved_so_far              = round(saved_so_far, 2)
+        goal.progress                  = progress
+        goal.true_remaining            = true_remaining
+        goal.adjusted_monthly_required = adjusted_monthly_required
+        goal.current_month_savings     = round(current_month_savings, 2)
+        goal.still_needed_this_month   = still_needed_this_month
+        goal.avg_monthly_savings       = round(avg_monthly_savings, 2)
+        goal.months_passed             = months_passed
+        goal.months_remaining          = months_remaining
+        goal.status                    = status
+        goal.ml_probability            = ml_probability
+        goal.ml_recommendation         = ml_recommendation
+        goal.ml_completion             = ml_completion
+        goal.ml_risk                   = ml_risk
+
+        goal_data.append(goal)
+
+    # ---- FEATURE 5: Optimal Goal Suggestion ----
+    ml_suggestion = suggest_optimal_goal(avg_monthly_income, avg_monthly_expense)
+
+    return render(request, 'view_goals.html', {
+        'goals':         goal_data,
+        'ml_suggestion': ml_suggestion,
+    })
+ 
+# ---------------------------------------------------------------
+# REPLACE your existing set_goal() with this:
+# ---------------------------------------------------------------
+ 
 @login_required
 def set_goal(request):
+    # Feature 5: show suggestion on the form page too
+     
+    from django.db.models.functions import TruncMonth
+ 
+    monthly_income_qs = (
+        Income.objects.filter(user=request.user)
+        .annotate(month=TruncMonth('date'))
+        .values('month')
+        .annotate(total=Sum('amount'))
+    )
+    monthly_expense_qs = (
+        Expense.objects.filter(user=request.user)
+        .annotate(month=TruncMonth('date'))
+        .values('month')
+        .annotate(total=Sum('amount'))
+    )
+ 
+    avg_monthly_income  = (
+        sum(x['total'] for x in monthly_income_qs) / monthly_income_qs.count()
+        if monthly_income_qs.count() > 0 else 0
+    )
+    avg_monthly_expense = (
+        sum(x['total'] for x in monthly_expense_qs) / monthly_expense_qs.count()
+        if monthly_expense_qs.count() > 0 else 0
+    )
+ 
+    ml_suggestion = suggest_optimal_goal(avg_monthly_income, avg_monthly_expense)
+ 
     if request.method == 'POST':
-        name = request.POST['name']
+        name          = request.POST['name']
         target_amount = request.POST['target_amount']
         target_months = request.POST['target_months']
-        start_date = request.POST['start_date']
-
+        start_date    = request.POST['start_date']
+ 
         Goal.objects.create(
             user=request.user,
             name=name,
@@ -273,67 +507,13 @@ def set_goal(request):
             target_months=target_months,
             start_date=start_date
         )
-
-        return render(request,'set_goal.html',{'success': True})
-    return render(request,'set_goal.html')
-
-##########################################################
-    # ---------------view goals ---------------------
-@login_required
-def view_goals(request):
-    goals = Goal.objects.filter(user=request.user)
-    goal_data = []
-    total_income = Income.objects.filter(
-        user=request.user
-    ).aggregate(
-        Sum('amount')
-    )['amount__sum'] or 0
-
-    total_expense = Expense.objects.filter(
-        user=request.user
-    ).aggregate(
-        Sum('amount')
-    )['amount__sum'] or 0
-
-    total_savings = total_income - total_expense
-
-    for goal in goals:
-        monthly_required = (goal.target_amount /goal.target_months)
-        # PROGRESS %
-        progress = (total_savings /goal.target_amount) * 100
-
-        if progress > 100:
-            progress = 100
-            
-        # REMAINING AMOUNT
-        remaining = (goal.target_amount - total_savings)
-
-        if remaining < 0:
-            remaining = 0
-
-        # MONTHS PASSED
-        today = date.today()
-        
-        months_passed = (
-            (today.year - goal.start_date.year) * 12 +
-            (today.month - goal.start_date.month)
-        )
-
-        # ESTIMATED STATUS
-        if months_passed <= goal.target_months:
-            status = "On Track"
-        else:
-            status = "Delayed"
-
-        # ATTACH DYNAMIC VALUES
-        goal.progress = round(progress, 2)
-        goal.remaining = round(remaining, 2)
-        goal.monthly_required = round(monthly_required,2)
-        goal.status = status
-        goal.total_savings = round(total_savings,2)
-        goal_data.append(goal)
-
-    return render(request,'view_goals.html',{'goals': goal_data})    
+        return render(request, 'set_goal.html', {
+            'success': True,
+            'ml_suggestion': ml_suggestion
+        })
+ 
+    return render(request, 'set_goal.html', {'ml_suggestion': ml_suggestion})
+     
 
 ##########################################################
     # ------------- View Report ---------------

@@ -1,70 +1,178 @@
 {% extends 'base.html' %}
-
-{% block title %}
-Set Goal
-{% endblock %}
-
+{% block title %}Set Goal{% endblock %}
 
 {% block content %}
 
+<style>
+    .goal-container { max-width: 600px; }
+
+    .goal-header { margin-bottom: 30px; }
+    .goal-header h1 { font-size: 30px; color: #0f172a; margin-bottom: 8px; }
+    .goal-header p  { color: #64748b; font-size: 16px; }
+
+    .success {
+        background: #dcfce7;
+        color: #166534;
+        padding: 14px 18px;
+        border-radius: 10px;
+        margin-bottom: 24px;
+        font-weight: bold;
+    }
+
+    /* ---------- FEATURE 5: SUGGESTION PANEL ---------- */
+    .suggestion-panel {
+        background: linear-gradient(135deg, #1e40af, #2563eb);
+        color: white;
+        padding: 22px 26px;
+        border-radius: 14px;
+        margin-bottom: 30px;
+    }
+    .suggestion-panel h3 {
+        font-size: 17px;
+        margin-bottom: 10px;
+    }
+    .suggestion-panel p {
+        font-size: 14px;
+        opacity: 0.9;
+        margin-bottom: 16px;
+    }
+    .suggestion-chips {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+    .chip {
+        background: rgba(255,255,255,0.2);
+        padding: 10px 16px;
+        border-radius: 30px;
+        font-size: 14px;
+        font-weight: bold;
+        cursor: pointer;
+        border: none;
+        color: white;
+        transition: 0.2s;
+    }
+    .chip:hover { background: rgba(255,255,255,0.35); }
+    .chip span  { display: block; font-size: 11px; opacity: 0.8; margin-bottom: 2px; }
+
+    /* ---------- FORM ---------- */
+    .form-group { margin-bottom: 20px; }
+    .form-group label {
+        display: block;
+        font-size: 15px;
+        color: #374151;
+        margin-bottom: 7px;
+        font-weight: bold;
+    }
+    .input-box {
+        width: 100%;
+        padding: 13px 15px;
+        border: 1px solid #cbd5e1;
+        border-radius: 10px;
+        font-size: 16px;
+        color: #0f172a;
+        transition: 0.2s;
+    }
+    .input-box:focus {
+        outline: none;
+        border-color: #2563eb;
+        box-shadow: 0 0 0 3px rgba(37,99,235,0.1);
+    }
+
+    .btn {
+        width: 100%;
+        padding: 15px;
+        background: #2563eb;
+        color: white;
+        border: none;
+        border-radius: 10px;
+        font-size: 17px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: 0.3s;
+        margin-top: 10px;
+    }
+    .btn:hover { background: #1d4ed8; }
+</style>
+
 <div class="goal-container">
-    <!-- HEADER -->
+
     <div class="goal-header">
-        <h1> Set Financial Goal </h1>
-
-        <p>
-            Plan your future savings and track progress effectively
-        </p>
-
+        <h1>🎯 Set Financial Goal</h1>
+        <p>Plan your future savings and track progress effectively</p>
     </div>
 
-
-    <!-- SUCCESS MESSAGE -->
     {% if success %}
-        <div class="success">
-            Goal Added Successfully
-        </div>
+    <div class="success">✅ Goal Added Successfully!</div>
     {% endif %}
 
+    <!-- FEATURE 5: SMART SUGGESTION PANEL -->
+    {% if ml_suggestion %}
+    <div class="suggestion-panel">
+        <h3>💡 Smart Goal Suggestion</h3>
+        <p>{{ ml_suggestion.message }}</p>
+        <div class="suggestion-chips">
+            <button class="chip" type="button"
+                onclick="fillGoal('{{ ml_suggestion.suggested_3m }}', 3)">
+                <span>3 Months</span>
+                ₹{{ ml_suggestion.suggested_3m }}
+            </button>
+            <button class="chip" type="button"
+                onclick="fillGoal('{{ ml_suggestion.suggested_6m }}', 6)">
+                <span>6 Months</span>
+                ₹{{ ml_suggestion.suggested_6m }}
+            </button>
+            <button class="chip" type="button"
+                onclick="fillGoal('{{ ml_suggestion.suggested_12m }}', 12)">
+                <span>12 Months</span>
+                ₹{{ ml_suggestion.suggested_12m }}
+            </button>
+        </div>
+    </div>
+    {% endif %}
 
-    <!-- FORM -->
-
+    <!-- GOAL FORM -->
     <form method="POST">
-
         {% csrf_token %}
-
-        <!-- GOAL NAME -->
 
         <div class="form-group">
             <label>Goal Name</label>
-            <input type="text" name="name" placeholder="Example: Buy Laptop" class="input-box" required>
+            <input type="text" name="name" id="goal_name"
+                placeholder="e.g. Buy Laptop, Emergency Fund"
+                class="input-box" required>
         </div>
 
-        <!-- TARGET AMOUNT -->
         <div class="form-group">
-            <label>Target Amount</label>
-            <input type="number" name="target_amount" placeholder="Enter Target Amount" class="input-box" required>
+            <label>Target Amount (₹)</label>
+            <input type="number" name="target_amount" id="target_amount"
+                placeholder="Enter Target Amount"
+                class="input-box" required>
         </div>
 
-
-        <!-- TARGET MONTHS -->
         <div class="form-group">
-            <label> Target Duration (Months) </label>
-            <input type="number" name="target_months" placeholder="Example: 12" class="input-box" required>
+            <label>Target Duration (Months)</label>
+            <input type="number" name="target_months" id="target_months"
+                placeholder="e.g. 6 or 12"
+                class="input-box" required>
         </div>
 
-        <!-- START DATE -->
         <div class="form-group">
             <label>Goal Start Date</label>
-            <input type="date" name="start_date" class="input-box" required>
+            <input type="date" name="start_date"
+                class="input-box" required>
         </div>
 
-        <!-- BUTTON -->
-        <button type="submit" class="btn">
-            Save Goal
-        </button>
+        <button type="submit" class="btn">Save Goal</button>
     </form>
 
 </div>
+
+<script>
+    // Feature 5: clicking a suggestion chip auto-fills the form
+    function fillGoal(amount, months) {
+        document.getElementById('target_amount').value = amount;
+        document.getElementById('target_months').value = months;
+    }
+</script>
 
 {% endblock %}

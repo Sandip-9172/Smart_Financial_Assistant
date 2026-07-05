@@ -1,225 +1,349 @@
 {% extends 'base.html' %}
-
-{% block title %}
-View Goals
-{% endblock %}
+{% block title %}View Goals{% endblock %}
 
 {% block content %}
 
 <style>
+    .page-header { margin-bottom: 30px; }
+    .page-header h1 { font-size: 32px; color: #0f172a; margin-bottom: 8px; }
+    .page-header p  { color: #64748b; font-size: 16px; }
 
-    .page-header{
-
-        display:flex;
-
-        justify-content:space-between;
-
-        align-items:center;
-
-        margin-bottom:30px;
+    /* ---------- FEATURE 5: SUGGESTION BOX ---------- */
+    .suggestion-box {
+        background: linear-gradient(135deg, #1e40af, #2563eb);
+        color: white;
+        padding: 25px 30px;
+        border-radius: 14px;
+        margin-bottom: 35px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 20px;
     }
-
-    .page-header h1{
-
-        font-size:36px;
-
-        color:#0f172a;
+    .suggestion-box h3 { font-size: 18px; margin-bottom: 8px; opacity: 0.9; }
+    .suggestion-box p  { font-size: 15px; opacity: 0.85; max-width: 600px; }
+    .suggestion-amounts { display: flex; gap: 20px; flex-wrap: wrap; }
+    .suggestion-chip {
+        background: rgba(255,255,255,0.2);
+        padding: 10px 18px;
+        border-radius: 30px;
+        font-size: 14px;
+        font-weight: bold;
+        text-align: center;
     }
-
-    .add-btn{
-
-        background:#2563eb;
-
-        color:white;
-
-        padding:14px 22px;
-
-        border-radius:10px;
-
-        text-decoration:none;
-
-        font-weight:bold;
-
-        transition:0.3s;
-    }
-
-    .add-btn:hover{
-
-        background:#1d4ed8;
-    }
-
-    /* ---------- GOAL GRID ---------- */
-
-    .goal-grid{
-
-        display:grid;
-
-        grid-template-columns:repeat(auto-fit,minmax(320px,1fr));
-
-        gap:25px;
-    }
+    .suggestion-chip span { display: block; font-size: 11px; opacity: 0.8; margin-bottom: 3px; }
 
     /* ---------- GOAL CARD ---------- */
-
-    .goal-card{
-
-        background:white;
-
-        padding:25px;
-
-        border-radius:18px;
-
-        box-shadow:0 5px 15px rgba(0,0,0,0.1);
-
-        transition:0.3s;
+    .goals-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(440px, 1fr));
+        gap: 25px;
     }
-
-    .goal-card:hover{
-
-        transform:translateY(-5px);
+    .goal-card {
+        background: white;
+        border-radius: 16px;
+        padding: 28px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+        border-top: 5px solid #2563eb;
     }
-
-    .goal-title{
-
-        font-size:24px;
-
-        color:#0f172a;
-
-        margin-bottom:20px;
+    .goal-card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 20px;
     }
+    .goal-name   { font-size: 22px; font-weight: bold; color: #0f172a; }
+    .goal-target { font-size: 14px; color: #64748b; margin-top: 4px; }
 
-    .goal-info{
-
-        margin-bottom:12px;
-
-        color:#475569;
-
-        font-size:17px;
+    /* ---------- FEATURE 1: PROBABILITY BADGE ---------- */
+    .prob-badge {
+        padding: 8px 16px;
+        border-radius: 30px;
+        font-size: 15px;
+        font-weight: bold;
+        text-align: center;
+        min-width: 80px;
     }
-
-    .goal-info span{
-
-        font-weight:bold;
-
-        color:#0f172a;
-    }
+    .prob-badge.green  { background: #dcfce7; color: #16a34a; }
+    .prob-badge.orange { background: #ffedd5; color: #ea580c; }
+    .prob-badge.red    { background: #fee2e2; color: #dc2626; }
 
     /* ---------- PROGRESS BAR ---------- */
-
-    .progress-container{
-
-        width:100%;
-
-        height:20px;
-
-        background:#e2e8f0;
-
-        border-radius:20px;
-
-        overflow:hidden;
-
-        margin-top:20px;
+    .progress-section { margin-bottom: 18px; }
+    .progress-label {
+        display: flex;
+        justify-content: space-between;
+        font-size: 14px;
+        color: #475569;
+        margin-bottom: 8px;
+    }
+    .progress-bar-bg {
+        background: #e2e8f0;
+        border-radius: 10px;
+        height: 14px;
+        overflow: hidden;
+    }
+    .progress-bar-fill {
+        height: 100%;
+        border-radius: 10px;
+        background: linear-gradient(90deg, #2563eb, #06b6d4);
+        transition: width 0.5s ease;
     }
 
-    .progress-bar{
-
-        height:100%;
-
-        background:linear-gradient(
-            to right,
-            #2563eb,
-            #1d4ed8
-        );
-
-        border-radius:20px;
+    /* ---------- CUMULATIVE SUMMARY ---------- */
+    .cumulative-row {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 10px;
+        margin-bottom: 18px;
     }
-
-    .progress-text{
-
-        margin-top:10px;
-
-        text-align:right;
-
-        font-weight:bold;
-
-        color:#2563eb;
+    .cum-item {
+        background: #f8fafc;
+        padding: 12px;
+        border-radius: 10px;
+        text-align: center;
     }
+    .cum-item label {
+        display: block;
+        font-size: 11px;
+        color: #94a3b8;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 5px;
+    }
+    .cum-item strong { font-size: 15px; color: #0f172a; }
 
+    /* ---------- THIS MONTH BOX ---------- */
+    .this-month-box {
+        border-radius: 10px;
+        padding: 16px 18px;
+        margin-bottom: 16px;
+        font-size: 14px;
+    }
+    .this-month-box.on-track {
+        background: #f0fdf4;
+        border: 1px solid #bbf7d0;
+        color: #166534;
+    }
+    .this-month-box.behind {
+        background: #fff7ed;
+        border: 1px solid #fed7aa;
+        color: #9a3412;
+    }
+    .this-month-box.achieved {
+        background: #f0fdf4;
+        border: 2px solid #16a34a;
+        color: #166534;
+    }
+    .this-month-box .month-title {
+        font-weight: bold;
+        font-size: 13px;
+        margin-bottom: 10px;
+    }
+    .month-numbers {
+        display: flex;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+    .month-number-item { text-align: center; }
+    .month-number-item span { display: block; font-size: 11px; opacity: 0.7; margin-bottom: 3px; }
+    .month-number-item strong { font-size: 16px; }
+
+    /* ---------- ML BOXES ---------- */
+    .completion-box {
+        background: #f0fdf4;
+        border: 1px solid #bbf7d0;
+        border-radius: 10px;
+        padding: 14px 16px;
+        margin-bottom: 14px;
+        font-size: 14px;
+        color: #166534;
+    }
+    .completion-box strong { display: block; margin-bottom: 3px; font-size: 13px; }
+
+    .recommendation-box {
+        padding: 14px 16px;
+        border-radius: 10px;
+        margin-bottom: 14px;
+        font-size: 14px;
+    }
+    .recommendation-box.feasible     { background: #eff6ff; border: 1px solid #bfdbfe; color: #1e40af; }
+    .recommendation-box.not-feasible { background: #fff7ed; border: 1px solid #fed7aa; color: #9a3412; }
+    .recommendation-box strong { display: block; margin-bottom: 3px; font-size: 13px; }
+
+    .risk-alert {
+        padding: 14px 16px;
+        border-radius: 10px;
+        font-size: 14px;
+        margin-bottom: 14px;
+    }
+    .risk-alert.High   { background: #fee2e2; border: 1px solid #fca5a5; color: #991b1b; }
+    .risk-alert.Medium { background: #ffedd5; border: 1px solid #fdba74; color: #9a3412; }
+    .risk-alert.Low    { background: #fefce8; border: 1px solid #fde68a; color: #854d0e; }
+
+    /* ---------- MISC ---------- */
+    .add-goal-btn {
+        display: inline-block;
+        margin-bottom: 30px;
+        padding: 14px 28px;
+        background: #2563eb;
+        color: white;
+        border-radius: 10px;
+        text-decoration: none;
+        font-size: 16px;
+        font-weight: bold;
+        transition: 0.3s;
+    }
+    .add-goal-btn:hover { background: #1d4ed8; }
+    .no-goals { text-align: center; padding: 60px; color: #94a3b8; font-size: 18px; }
 </style>
 
-
 <!-- PAGE HEADER -->
-
 <div class="page-header">
-    <h1>
-        Financial Goals
-    </h1>
-
-    <a href="/set-goal/"class="add-btn">
-        + Add Goal
-    </a>
+    <h1>🎯 Financial Goals</h1>
+    <p>Track, predict, and achieve your savings goals</p>
 </div>
 
-<!-- GOAL CARDS -->
-<div class="goal-grid">
+<!-- FEATURE 5: SUGGESTION BANNER -->
+{% if ml_suggestion %}
+<div class="suggestion-box">
+    <div>
+        <h3>💡 Smart Goal Suggestion</h3>
+        <p>{{ ml_suggestion.message }}</p>
+    </div>
+    <div class="suggestion-amounts">
+        <div class="suggestion-chip">
+            <span>3 Months</span>₹{{ ml_suggestion.suggested_3m }}
+        </div>
+        <div class="suggestion-chip">
+            <span>6 Months</span>₹{{ ml_suggestion.suggested_6m }}
+        </div>
+        <div class="suggestion-chip">
+            <span>12 Months</span>₹{{ ml_suggestion.suggested_12m }}
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<a href="/set-goal/" class="add-goal-btn">+ Set New Goal</a>
+
+{% if goals %}
+<div class="goals-grid">
     {% for goal in goals %}
     <div class="goal-card">
-        <h2 class="goal-title">
-            {{ goal.name }}
-        </h2>
 
-        <p class="goal-info">
-            Target Amount:
-            <span>
-                ₹ {{ goal.target_amount }}
-            </span>
-        </p>
+        <!-- HEADER: Name + Probability Badge -->
+        <div class="goal-card-header">
+            <div>
+                <div class="goal-name">{{ goal.name }}</div>
+                <div class="goal-target">
+                    Target: ₹{{ goal.target_amount }} &nbsp;|&nbsp;
+                    Started: {{ goal.start_date|date:"d M Y" }} &nbsp;|&nbsp;
+                    {{ goal.months_passed }} of {{ goal.target_months }} months passed
+                </div>
+            </div>
+            {% if goal.ml_probability %}
+            <div class="prob-badge {{ goal.ml_probability.color }}">
+                {{ goal.ml_probability.probability }}%<br>
+                <small style="font-size:10px; font-weight:normal;">{{ goal.ml_probability.label }}</small>
+            </div>
+            {% endif %}
+        </div>
 
-        <p class="goal-info">
-            Monthly Saving Required:
-            <span>
-                ₹ {{ goal.monthly_required }}
-            </span>
-        </p>
-        
-        <p class="goal-info">
-            Current Savings:        
-            <span>        
-                ₹ {{ goal.total_savings }}        
-            </span>        
-        </p>
-                
-        <p class="goal-info">        
-            Goal Duration:        
-            <span>        
-                {{ goal.target_months }} Months        
-            </span>        
-        </p>        
-        
-        <p class="goal-info">        
-            Status:        
-            <span>        
-                {{ goal.status }}        
-            </span>        
-        </p>
-
-        <p class="goal-info">
-            Remaining:
-            <span>
-                ₹ {{ goal.remaining }}
-            </span>
-        </p>
-
-        <div class="progress-container">
-            <div class="progress-bar" style=" width: {{ goal.progress }} %; ">
+        <!-- OVERALL PROGRESS BAR -->
+        <div class="progress-section">
+            <div class="progress-label">
+                <span>Overall Progress: ₹{{ goal.saved_so_far }} saved since goal started</span>
+                <span>{{ goal.progress }}%</span>
+            </div>
+            <div class="progress-bar-bg">
+                <div class="progress-bar-fill" style="width: {{ goal.progress }}%"></div>
             </div>
         </div>
 
-        <div class="progress-text">
-            {{ goal.progress }}%
+        <!-- CUMULATIVE SUMMARY ROW -->
+        <div class="cumulative-row">
+            <div class="cum-item">
+                <label>Saved So Far</label>
+                <strong>₹{{ goal.saved_so_far }}</strong>
+            </div>
+            <div class="cum-item">
+                <label>Still Remaining</label>
+                <strong>₹{{ goal.true_remaining }}</strong>
+            </div>
+            <div class="cum-item">
+                <label>Months Left</label>
+                <strong>{{ goal.months_remaining }}</strong>
+            </div>
         </div>
+
+        <!-- THIS MONTH BOX -->
+        {% if goal.true_remaining <= 0 %}
+        <div class="this-month-box achieved">
+            <div class="month-title">🎉 Goal Achieved!</div>
+            You've successfully saved ₹{{ goal.saved_so_far }} — target reached!
+        </div>
+
+        {% else %}
+        <div class="this-month-box {% if goal.still_needed_this_month == 0 %}on-track{% else %}behind{% endif %}">
+            <div class="month-title">📅 This Month's Target</div>
+            <div class="month-numbers">
+                <div class="month-number-item">
+                    <span>Saved This Month</span>
+                    <strong>₹{{ goal.current_month_savings }}</strong>
+                </div>
+                <div class="month-number-item">
+                    <span>Needed This Month</span>
+                    {# adjusted_monthly_required is reduced by previous savings #}
+                    <strong>₹{{ goal.adjusted_monthly_required }}</strong>
+                </div>
+                <div class="month-number-item">
+                    <span>Still Need</span>
+                    <strong>
+                        {% if goal.still_needed_this_month == 0 %}
+                            ✅ Done
+                        {% else %}
+                            ₹{{ goal.still_needed_this_month }}
+                        {% endif %}
+                    </strong>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- FEATURE 3: COMPLETION DATE -->
+        {% if goal.ml_completion and goal.true_remaining > 0 %}
+        <div class="completion-box">
+            <strong>📅 Predicted Completion</strong>
+            {{ goal.ml_completion.message }}
+        </div>
+        {% endif %}
+
+        <!-- FEATURE 2: SMART RECOMMENDATION -->
+        {% if goal.ml_recommendation and goal.true_remaining > 0 %}
+        <div class="recommendation-box {% if goal.ml_recommendation.feasible %}feasible{% else %}not-feasible{% endif %}">
+            <strong>💰 Saving Recommendation</strong>
+            {{ goal.ml_recommendation.message }}
+        </div>
+        {% endif %}
+
+        <!-- FEATURE 4: RISK ALERT -->
+        {% if goal.ml_risk %}
+        <div class="risk-alert {{ goal.ml_risk.risk_level }}">
+            {{ goal.ml_risk.message }}
+        </div>
+        {% endif %}
+
     </div>
     {% endfor %}
-
 </div>
+
+{% else %}
+<div class="no-goals">
+    No goals set yet. <a href="/set-goal/">Set your first goal →</a>
+</div>
+{% endif %}
+
 {% endblock %}
